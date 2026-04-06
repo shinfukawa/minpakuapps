@@ -1,0 +1,17 @@
+[
+  {
+    "id": "2026-03",
+    "year": 2026,
+    "month": 3,
+    "label": "2026年3月",
+    "nights": 18,
+    "sales": 430540,
+    "roomRevenue": 388540,
+    "cleaning": 42000,
+    "avgRate": 21586,
+    "otaFee": 0,
+    "receive": 367997,
+    "tax": 6760,
+    "source": "csv"
+  }
+]
