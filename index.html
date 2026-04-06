@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コーラルハウス北谷 ｜ 売上・宿泊税管理</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f4f8;color:#1a2332;min-height:100vh}
+.wrap{max-width:1300px;margin:0 auto;padding:24px 18px}
+.hero{background:linear-gradient(135deg,#0077b6,#00b4d8);border-radius:16px;padding:22px 30px;color:#fff;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.hero h1{font-size:21px;font-weight:700}
+.hero p{font-size:11px;opacity:.8;margin-top:3px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700}
+.tabs{display:flex;margin-bottom:18px;border-bottom:2px solid #e2e8f0}
+.tab{padding:10px 22px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;color:#64748b;transition:.15s;margin-bottom:-2px}
+.tab.active{color:#0077b6;border-bottom-color:#0077b6}
+.tab:hover{color:#0077b6}
+.card{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid #e2e8f0}
+.ctitle{font-size:13px;font-weight:700;color:#0077b6;margin-bottom:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.row2{grid-template-columns:1fr}}
+.ubox{border:2px dashed #93c5fd;border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:.2s;background:#f8faff}
+.ubox:hover,.ubox.over{border-color:#0077b6;background:#e0f2fe}
+.ubox .ico{font-size:28px;margin-bottom:8px}
+.ubox .lbl{font-size:13px;color:#475569;font-weight:600}
+.ubox .sub{font-size:11px;color:#94a3b8;margin-top:3px;line-height:1.5}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;transition:.15s}
+.btn-b{background:#0077b6;color:#fff}.btn-b:hover{background:#005f8e}
+.btn-g{background:#059669;color:#fff}.btn-g:hover{background:#047857}
+.btn-r{background:#dc2626;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.btn-r:hover{background:#b91c1c}
+.btn-o{background:#fff;color:#0077b6;border:2px solid #0077b6}.btn-o:hover{background:#f0f9ff}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:18px}
+.sc{background:#f8fafc;border-radius:10px;padding:13px 16px;border:1px solid #e2e8f0}
+.sc-l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.sc-v{font-size:19px;font-weight:700;font-family:'DM Mono',monospace;color:#0077b6}
+.sc-s{font-size:10px;color:#94a3b8;margin-top:2px}
+.tw{overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{background:#f1f5f9;padding:8px 9px;text-align:center;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid #f1f5f9;color:#334155}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8faff}
+.r{text-align:right;font-family:'DM Mono',monospace}
+.c{text-align:center}
+.tv{color:#dc2626;font-weight:700}
+.bxl{background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.bcsv{background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.cgrid{grid-template-columns:1fr}}
+.cbox{background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid #e2e8f0}
+.ctit2{font-size:12px;font-weight:700;color:#475569;margin-bottom:12px}
+.cwrap{position:relative;height:220px}
+.note{background:#fffbeb;border-left:3px solid #f59e0b;padding:10px 14px;font-size:11px;color:#78350f;border-radius:0 8px 8px 0;margin-top:12px;line-height:1.7}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;padding:9px 13px;font-size:12px;margin-top:8px}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:8px;padding:9px 13px;font-size:12px;margin-bottom:12px}
+.empty{text-align:center;padding:40px;color:#94a3b8;font-size:13px;line-height:2}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useCallback,useRef,useEffect,useMemo}=React;
+const SK='coral_csv_only_v3';
+const HISTORICAL=[{"id": "2024-10", "year": 2024, "month": 10, "label": "2024年10月", "nights": 25, "sales": 587069, "roomRevenue": 569069, "cleaning": 18000, "avgRate": 22763, "otaFee": 90978, "receive": 496091, "tax": 0, "source": "excel"}, {"id": "2024-11", "year": 2024, "month": 11, "label": "2024年11月", "nights": 14, "sales": 300800, "roomRevenue": 270800, "cleaning": 30000, "avgRate": 19343, "otaFee": 45120, "receive": 255680, "tax": 0, "source": "excel"}, {"id": "2024-12", "year": 2024, "month": 12, "label": "2024年12月", "nights": 8, "sales": 168400, "roomRevenue": 148400, "cleaning": 20000, "avgRate": 14339, "otaFee": 12756, "receive": 155644, "tax": 0, "source": "excel"}, {"id": "2025-01", "year": 2025, "month": 1, "label": "2025年1月", "nights": 17, "sales": 259764, "roomRevenue": 243764, "cleaning": 16000, "avgRate": 14339, "otaFee": 36573, "receive": 207247, "tax": 0, "source": "excel"}, {"id": "2025-02", "year": 2025, "month": 2, "label": "2025年2月", "nights": 16, "sales": 335488, "roomRevenue": 312488, "cleaning": 23000, "avgRate": 19530, "otaFee": 35277, "receive": 300211, "tax": 0, "source": "excel"}, {"id": "2025-03", "year": 2025, "month": 3, "label": "2025年3月", "nights": 12, "sales": 319650, "roomRevenue": 271650, "cleaning": 48000, "avgRate": 22638, "otaFee": 47736, "receive": 271914, "tax": 0, "source": "excel"}, {"id": "2025-04", "year": 2025, "month": 4, "label": "2025年4月", "nights": 9, "sales": 272850, "roomRevenue": 242850, "cleaning": 78000, "avgRate": 26983, "otaFee": 40744, "receive": 232106, "tax": 0, "source": "excel"}, {"id": "2025-05", "year": 2025, "month": 5, "label": "2025年5月", "nights": 10, "sales": 332290, "roomRevenue": 284290, "cleaning": 48000, "avgRate": 28429, "otaFee": 46951, "receive": 285339, "tax": 0, "source": "excel"}, {"id": "2025-06", "year": 2025, "month": 6, "label": "2025年6月", "nights": 11, "sales": 284460, "roomRevenue": 268460, "cleaning": 16000, "avgRate": 24405, "otaFee": 40677, "receive": 243783, "tax": 0, "source": "excel"}, {"id": "2025-07", "year": 2025, "month": 7, "label": "2025年7月", "nights": 22, "sales": 611594, "roomRevenue": 571594, "cleaning": 40000, "avgRate": 25982, "otaFee": 89959, "receive": 521635, "tax": 0, "source": "excel"}, {"id": "2025-08", "year": 2025, "month": 8, "label": "2025年8月", "nights": 15, "sales": 621900, "roomRevenue": 581900, "cleaning": 40000, "avgRate": 38793, "otaFee": 90514, "receive": 531386, "tax": 0, "source": "excel"}, {"id": "2025-09", "year": 2025, "month": 9, "label": "2025年9月", "nights": 17, "sales": 423070, "roomRevenue": 399570, "cleaning": 23500, "avgRate": 23504, "otaFee": 62806, "receive": 360264, "tax": 0, "source": "excel"}, {"id": "2025-10", "year": 2025, "month": 10, "label": "2025年10月", "nights": 31, "sales": 799075, "roomRevenue": 781575, "cleaning": 17500, "avgRate": 25212, "otaFee": 115516, "receive": 683559, "tax": 0, "source": "excel"}, {"id": "2025-11", "year": 2025, "month": 11, "label": "2025年11月", "nights": 20, "sales": 389900, "roomRevenue": 386400, "cleaning": 3500, "avgRate": 19320, "otaFee": 58485, "receive": 331415, "tax": 0, "source": "excel"}, {"id": "2025-12", "year": 2025, "month": 12, "label": "2025年12月", "nights": 23, "sales": 559020, "roomRevenue": 532020, "cleaning": 27000, "avgRate": 23131, "otaFee": 84557, "receive": 474463, "tax": 0, "source": "excel"}, {"id": "2026-01", "year": 2026, "month": 1, "label": "2026年1月", "nights": 11, "sales": 254793, "roomRevenue": 236793, "cleaning": 18000, "avgRate": 21527, "otaFee": 39493, "receive": 215300, "tax": 0, "source": "excel"}, {"id": "2026-02", "year": 2026, "month": 2, "label": "2026年2月", "nights": 24, "sales": 661570, "roomRevenue": 629570, "cleaning": 32000, "avgRate": 26232, "otaFee": 87530, "receive": 574040, "tax": 0, "source": "excel"}, {"id": "2026-03", "year": 2026, "month": 3, "label": "2026年3月", "nights": 10, "sales": 251810, "roomRevenue": 231810, "cleaning": 20000, "avgRate": 23181, "otaFee": 45656, "receive": 206154, "tax": 0, "source": "excel"}];
+const isValid=d=>d&&d.year>0&&d.month>=1&&d.month<=12&&d.label&&d.label!=='不明';
+
+const fmt=n=>n==null?"-":Math.round(n).toLocaleString("ja-JP");
+const fy=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
+
+function parseMonthStr(s){
+  if(!s)return null;
+  const n=String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFF10+48));
+  const m=n.match(/(\d+)月/);
+  return m?parseInt(m[1]):null;
+}
+function taxPP(r){const b=Math.floor(r/1000)*1000;return Math.min(b*0.02,2000);}
+function sortArr(arr){return[...arr].sort((a,b)=>a.year!==b.year?a.year-b.year:a.month-b.month);}
+function mkId(y,m){return`${y}-${String(m).padStart(2,'0')}`;}
+function mkLabel(y,m){return`${y}年${m}月`;}
+
+/* Excel読み込み */
+function readXL(buf){
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets['サマリー'];
+  if(!ws)throw new Error('「サマリー」シートが見つかりません');
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  const out=[];let year=null;
+  for(const row of rows){
+    if(row[0]&&typeof row[0]==='number'&&row[0]>2000)year=Math.round(row[0]);
+    const month=parseMonthStr(row[1]);
+    if(!month||!year)continue;
+    const nights=row[2],sales=row[3];
+    if(!nights||typeof nights!=='number'||nights<1||nights>365)continue;
+    if(!sales||typeof sales!=='number'||sales<1000)continue;
+    out.push({
+      id:mkId(year,month),year,month,label:mkLabel(year,month),
+      nights:Math.round(nights),sales:Math.round(sales),
+      roomRevenue:Math.round(row[4]||0),cleaning:Math.round(row[5]||0),
+      avgRate:Math.round(row[6]||0),otaFee:Math.round(row[7]||0),
+      receive:Math.round(row[9]||0),tax:0,source:'excel',
+    });
+  }
+  if(!out.length)throw new Error('データを読み取れませんでした');
+  return out;
+}
+
+/* CSV読み込み */
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  const hdrs=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line=>{
+    const cols=[];let inQ=false,cur='';
+    for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;}
+    cols.push(cur.trim());
+    const obj={};hdrs.forEach((h,i)=>obj[h]=cols[i]??'');return obj;
+  }).filter(r=>Object.values(r).some(v=>v));
+}
+
+function readCSV(text){
+  const rows=parseCSV(text).filter(r=>!r['状態']?.includes('キャンセル')&&r['チェックイン']?.trim());
+  if(!rows.length)throw new Error('有効な予約データが見つかりませんでした');
+  const byM={};
+  for(const r of rows){
+    const d=new Date(r['チェックイン'].replace(/\//g,'-'));
+    if(isNaN(d))continue;
+    const y=d.getFullYear(),m=d.getMonth()+1,id=mkId(y,m);
+    if(!byM[id])byM[id]={y,m,id,label:mkLabel(y,m),bks:[]};
+    const nights=parseInt(r['合計日数'])||1,guests=parseInt(r['ゲスト数'])||1;
+    const sales=parseFloat(r['販売'])||0,cleaning=parseFloat(r['クリーニング代'])||0;
+    const rm=sales-cleaning;
+    byM[id].bks.push({nights,guests,sales,cleaning,rm,
+      otaFee:parseFloat(r['OTAサービス料'])||0,
+      receive:parseFloat(r['受取金'])||0,
+      tax:taxPP(rm/nights/guests)*guests*nights});
+  }
+  return Object.values(byM).map(({y,m,id,label,bks})=>{
+    const s=k=>bks.reduce((a,b)=>a+(b[k]||0),0);
+    const n=s('nights'),rm=s('rm');
+    return{id,year:y,month:m,label,nights:n,sales:Math.round(s('sales')),
+      roomRevenue:Math.round(rm),cleaning:Math.round(s('cleaning')),
+      avgRate:n>0?Math.round(rm/n):0,otaFee:Math.round(s('otaFee')),
+      receive:Math.round(s('receive')),tax:Math.round(s('tax')),source:'csv'};
+  });
+}
+
+/* Chart component */
+function CBox({title,type,labels,datasets,yfmt}){
+  const ref=useRef(null),inst=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    if(inst.current)inst.current.destroy();
+    inst.current=new Chart(ref.current,{type,data:{labels,datasets},options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:11,padding:8}}},
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:50}},
+        y:{ticks:{font:{size:10},callback:v=>yfmt?yfmt(v):v.toLocaleString()},beginAtZero:true},
+      },
+    }});
+    return()=>{if(inst.current)inst.current.destroy();};
+  },[labels,datasets,type]);
+  return(<div className="cbox"><div className="ctit2">{title}</div><div className="cwrap"><canvas ref={ref}/></div></div>);
+}
+
+/* Excel export */
+function doExport(sorted){
+  const wb=XLSX.utils.book_new();
+  const h1=['年月','泊数','売上','宿泊料','清掃料','1泊単価','OTA手数料','入金予定額','宿泊税','県税(0.8%)','北谷町税(1.2%)','種別'];
+  const ws1=XLSX.utils.aoa_to_sheet([h1,...sorted.map(d=>[d.label,d.nights,d.sales,d.roomRevenue,d.cleaning,d.avgRate,d.otaFee,d.receive,d.tax,Math.round(d.tax*.4),Math.round(d.tax*.6),d.source==='csv'?'CSV':'Excel'])]);
+  ws1['!cols']=[12,6,10,10,8,9,10,11,9,9,12,8].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws1,'月別サマリー');
+  const csv=sorted.filter(d=>d.source==='csv');
+  if(csv.length){
+    const h2=['年月','泊数','宿泊税合計','県税(0.8%)','北谷町税(1.2%)'];
+    const tot=csv.reduce((s,d)=>s+d.tax,0);
+    const ws2=XLSX.utils.aoa_to_sheet([h2,...csv.map(d=>[d.label,d.nights,d.tax,Math.round(d.tax*.4),Math.round(d.tax*.6)]),['合計',csv.reduce((s,d)=>s+d.nights,0),Math.round(tot),Math.round(tot*.4),Math.round(tot*.6)]]);
+    ws2['!cols']=[12,8,12,12,14].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws2,'宿泊税申告');
+  }
+  XLSX.writeFile(wb,`コーラルハウス_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+/* App */
+function App(){
+  const initData=()=>{
+  const hist=HISTORICAL.filter(isValid);
+  try{
+    const saved=localStorage.getItem(SK);
+    const csvRecs=saved?JSON.parse(saved).filter(d=>isValid(d)&&d.source==='csv'):[];
+    const map={};
+    for(const d of hist) map[d.id]=d;
+    for(const d of csvRecs) map[d.id]=d; // CSVが同月のExcelデータを上書き
+    return Object.values(map);
+  }catch{return hist;}
+};
+const [data,setData]=useState(initData);
+  const [tab,setTab]=useState('data');
+  const [err,setErr]=useState('');
+  const [msg,setMsg]=useState('');
+  const xlRef=useRef(),csvRef=useRef();
+
+  const save=useCallback(d=>{
+  // 表示データ = 過去データ + CSVデータのマージ
+  const map={};
+  for(const h of HISTORICAL.filter(isValid)) map[h.id]=h;
+  for(const r of d.filter(isValid)) map[r.id]=r;
+  const merged=Object.values(map);
+  setData(merged);
+  // localStorageにはCSVデータのみ保存
+  const csvOnly=d.filter(r=>isValid(r)&&r.source==='csv');
+  try{localStorage.setItem(SK,JSON.stringify(csvOnly));}catch{}
+}, []);
+  const flash=m=>{setMsg(m);setTimeout(()=>setMsg(''),5000);};
+
+  const mergeXL=useCallback(file=>{
+    if(!file)return; setErr('');
+    const r=new FileReader();
+    r.onload=e=>{try{
+      const rec=readXL(new Uint8Array(e.target.result));
+      const map={};for(const d of data)map[d.id]=d;
+      for(const r of rec)if(!map[r.id]||map[r.id].source==='excel')map[r.id]=r;
+      save(Object.values(map));
+      flash(`✅ Excel読み込み完了：${rec.length}ヶ月分を取込みました`);
+    }catch(ex){setErr(ex.message);}};
+    r.readAsArrayBuffer(file);
+  },[data,save]);
+
+  const mergeCSV=useCallback(file=>{
+    if(!file)return; setErr('');
+    const r=new FileReader();
+    r.onload=e=>{try{
+      const months=readCSV(e.target.result);
+      const map={};for(const d of data)map[d.id]=d;
+      for(const m of months)map[m.id]=m;
+      save(Object.values(map));
+      flash(`✅ CSV読み込み完了：${months.map(m=>m.label).join('・')}を追加しました`);
+    }catch(ex){setErr(ex.message);}};
+    r.readAsText(file,'UTF-8');
+  },[data,save]);
+
+  const del=id=>{
+  const target=data.find(d=>d.id===id);
+  if(!target)return;
+  if(target.source==='excel'){alert('過去データ（Excel埋込）は削除できません。\nCSVで同月を取り込むと上書きされます。');return;}
+  if(window.confirm('このCSVデータを削除しますか？'))save(data.filter(d=>d.id!==id));
+};
+  const clear=()=>{
+  if(window.confirm('取り込んだCSVデータをすべて削除しますか？\n（過去データ18ヶ月分はアプリに内蔵されているため残ります）'))
+    save(HISTORICAL.filter(isValid));
+};
+
+  const sorted=useMemo(()=>sortArr(data),[data]);
+  const csvData=sorted.filter(d=>d.source==='csv');
+  const sum=k=>sorted.reduce((s,d)=>s+(d[k]||0),0);
+  const totalTax=csvData.reduce((s,d)=>s+d.tax,0);
+
+  /* グラフ設定 */
+  const labels=sorted.map(d=>`${d.year}/${d.month}月`);
+  const C={b1:'rgba(0,119,182,0.82)',b2:'rgba(0,180,216,0.7)',line:'#f59e0b',tax:'rgba(220,38,38,0.75)',taxNo:'rgba(200,200,200,0.3)'};
+
+  return(
+    <div className="wrap">
+      <div className="hero">
+        <div><h1>🌊 コーラルハウス北谷　売上・宿泊税管理</h1>
+          <p>Excelで過去データを一括取込 → 毎月CSVを追加 → グラフ・宿泊税を自動集計</p></div>
+        <div className="pills">
+          <span className="pill">宿泊税 2.0%</span>
+          <span className="pill">県税 0.8% ＋ 北谷町税 1.2%</span>
+          <span className="pill">上限 ¥2,000/人/泊</span>
+        </div>
+      </div>
+
+      <div className="tabs">
+        {[['data','📂 データ管理'],['chart','📈 グラフ'],['tax','🧾 宿泊税申告']].map(([k,l])=>(
+          <div key={k} className={'tab'+(tab===k?' active':'')} onClick={()=>setTab(k)}>{l}</div>
+        ))}
+      </div>
+
+      {/* ── データ管理 ── */}
+      {tab==='data'&&<>
+        <div className="card">
+          <div className="ctitle">📥 毎月のデータ追加（Booking CSV）</div>
+          <div>
+            <div>
+              <div style={{fontSize:12,fontWeight:700,color:'#475569',marginBottom:8}}>毎月、AirhostOneからダウンロードしたCSVを追加</div>
+              <div className="ubox"
+                onDragOver={e=>{e.preventDefault();e.currentTarget.classList.add('over');}}
+                onDragLeave={e=>e.currentTarget.classList.remove('over')}
+                onDrop={e=>{e.preventDefault();e.currentTarget.classList.remove('over');mergeCSV(e.dataTransfer.files[0]);}}
+                onClick={()=>csvRef.current.click()}>
+                <div className="ico">📄</div>
+                <div className="lbl">Booking_...csv</div>
+                <div className="sub">AirhostOneから毎月ダウンロードして追加<br/>宿泊税が自動計算され、グラフに反映されます</div>
+              </div>
+              <input ref={csvRef} type="file" accept=".csv" style={{display:'none'}} onChange={e=>mergeCSV(e.target.files[0])}/>
+            </div>
+          </div>
+          {err&&<div className="err">⚠️ {err}</div>}
+          {msg&&<div className="ok">{msg}</div>}
+        </div>
+
+        {sorted.length>0&&<>
+          <div className="card">
+            <div className="ctitle">📊 累計サマリー（{sorted.length}ヶ月分）</div>
+            <div className="sgrid">
+              <div className="sc"><div className="sc-l">取込月数</div><div className="sc-v">{sorted.length}<span style={{fontSize:12}}>ヶ月</span></div><div className="sc-s">内蔵 {HISTORICAL.length}ヶ月 ＋ CSV追加 {csvData.length}ヶ月</div></div>
+              <div className="sc"><div className="sc-l">総泊数</div><div className="sc-v">{fmt(sum('nights'))}<span style={{fontSize:12}}>泊</span></div></div>
+              <div className="sc"><div className="sc-l">総売上</div><div className="sc-v" style={{fontSize:16}}>{fy(sum('sales'))}</div></div>
+              <div className="sc"><div className="sc-l">総入金予定額</div><div className="sc-v" style={{fontSize:16}}>{fy(sum('receive'))}</div></div>
+              <div className="sc"><div className="sc-l">宿泊税合計</div><div className="sc-v" style={{color:'#dc2626',fontSize:16}}>{fy(totalTax)}</div><div className="sc-s">CSV取込月分</div></div>
+              <div className="sc"><div className="sc-l">1泊平均単価</div><div className="sc-v" style={{fontSize:15}}>{fy(sum('nights')>0?sorted.reduce((s,d)=>s+d.roomRevenue,0)/sum('nights'):0)}</div></div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="ctitle">📋 月別データ一覧</div>
+            <div className="tw">
+              <table>
+                <thead><tr>
+                  <th>年月</th><th>泊数</th><th>売上</th><th>宿泊料</th><th>清掃料</th>
+                  <th>1泊単価</th><th>OTA手数料</th><th>入金予定額</th>
+                  <th style={{background:'#dbeafe',color:'#1e40af'}}>宿泊税</th>
+                  <th style={{background:'#dbeafe',color:'#1e40af'}}>県税</th>
+                  <th style={{background:'#dbeafe',color:'#1e40af'}}>北谷町税</th>
+                  <th>種別</th><th></th>
+                </tr></thead>
+                <tbody>
+                  {sorted.map(d=>(
+                    <tr key={d.id}>
+                      <td className="c" style={{fontWeight:600}}>{d.label}</td>
+                      <td className="c">{d.nights}泊</td>
+                      <td className="r">{fmt(d.sales)}</td>
+                      <td className="r">{fmt(d.roomRevenue)}</td>
+                      <td className="r">{fmt(d.cleaning)}</td>
+                      <td className="r">{fmt(d.avgRate)}</td>
+                      <td className="r">{fmt(d.otaFee)}</td>
+                      <td className="r">{fmt(d.receive)}</td>
+                      <td className="r tv">{d.tax>0?fmt(d.tax):'-'}</td>
+                      <td className="r" style={{color:'#64748b'}}>{d.tax>0?fmt(d.tax*.4):'-'}</td>
+                      <td className="r" style={{color:'#64748b'}}>{d.tax>0?fmt(d.tax*.6):'-'}</td>
+                      <td className="c">{d.source==='csv'?<span className="bcsv">CSV</span>:<span className="bxl">Excel</span>}</td>
+                      <td className="c"><button className="btn-r" onClick={()=>del(d.id)}>削除</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="btns">
+              <button className="btn btn-g" onClick={()=>doExport(sorted)}>📥 Excelダウンロード</button>
+              <button className="btn btn-o" onClick={clear}>🗑 CSV追加分を削除</button>
+            </div>
+          </div>
+        </>}
+
+        {sorted.length===0&&<div className="card"><div className="empty">
+          📄 毎月AirhostOneの「Booking_...csv」をアップロードするだけで月次データが追加されます<br/>過去18ヶ月分（2024年10月〜2026年3月）のデータはアプリに内蔵済みです
+        </div></div>}
+      </>}
+
+      {/* ── グラフ ── */}
+      {tab==='chart'&&(sorted.length===0
+        ?<div className="card"><div className="empty">データがありません。「データ管理」タブからデータを取り込んでください</div></div>
+        :<>
+          <div className="cgrid">
+            <CBox title="📦 月別売上推移（円）" type="bar" labels={labels}
+              yfmt={v=>v>=10000?Math.round(v/10000)+'万':v.toLocaleString()}
+              datasets={[
+                {label:'宿泊料',data:sorted.map(d=>d.roomRevenue),backgroundColor:C.b1,borderRadius:3,stack:'s'},
+                {label:'清掃料',data:sorted.map(d=>d.cleaning),backgroundColor:C.b2,borderRadius:3,stack:'s'},
+              ]}/>
+            <CBox title="🛏 月別泊数推移（泊）" type="bar" labels={labels}
+              datasets={[{label:'泊数',data:sorted.map(d=>d.nights),backgroundColor:C.b1,borderRadius:3}]}/>
+            <CBox title="💰 1泊平均単価推移（円）" type="line" labels={labels}
+              yfmt={v=>v.toLocaleString()+'円'}
+              datasets={[{label:'1泊単価',data:sorted.map(d=>d.avgRate),borderColor:C.line,backgroundColor:'rgba(245,158,11,0.12)',fill:true,tension:0.35,pointRadius:4,pointBackgroundColor:C.line}]}/>
+            <CBox title="🏛 宿泊税推移（円）※CSV取込月のみ" type="bar" labels={labels}
+              datasets={[{label:'宿泊税',data:sorted.map(d=>d.tax||0),backgroundColor:sorted.map(d=>d.tax>0?C.tax:C.taxNo),borderRadius:3}]}/>
+          </div>
+          <div className="note">📌 グラフはブラウザ内に保存されたデータを表示しています。宿泊税はBooking CSV取込月のみ集計されます（Excelから読み込んだ過去データは0）。毎月CSVを追加するとグラフが更新されます。</div>
+        </>
+      )}
+
+      {/* ── 宿泊税申告 ── */}
+      {tab==='tax'&&(csvData.length===0
+        ?<div className="card"><div className="empty">Booking CSVから取り込んだデータがありません。<br/>「データ管理」タブからCSVを追加してください</div></div>
+        :<div className="card">
+          <div className="ctitle">🧾 宿泊税申告サマリー（CSV取込月のみ）</div>
+          <div className="sgrid">
+            <div className="sc"><div className="sc-l">申告対象月</div><div className="sc-v">{csvData.length}<span style={{fontSize:12}}>ヶ月</span></div></div>
+            <div className="sc"><div className="sc-l">宿泊税合計</div><div className="sc-v" style={{color:'#dc2626',fontSize:16}}>{fy(totalTax)}</div></div>
+            <div className="sc"><div className="sc-l">県税（0.8%）</div><div className="sc-v" style={{fontSize:16}}>{fy(totalTax*.4)}</div></div>
+            <div className="sc"><div className="sc-l">北谷町税（1.2%）</div><div className="sc-v" style={{fontSize:16}}>{fy(totalTax*.6)}</div></div>
+          </div>
+          <div className="tw">
+            <table>
+              <thead><tr><th>年月</th><th>泊数</th><th>宿泊税合計</th><th>県税(0.8%)</th><th>北谷町税(1.2%)</th></tr></thead>
+              <tbody>
+                {csvData.map(d=>(
+                  <tr key={d.id}>
+                    <td className="c" style={{fontWeight:600}}>{d.label}</td>
+                    <td className="c">{d.nights}泊</td>
+                    <td className="r tv">{fy(d.tax)}</td>
+                    <td className="r">{fy(d.tax*.4)}</td>
+                    <td className="r">{fy(d.tax*.6)}</td>
+                  </tr>
+                ))}
+                <tr style={{background:'#f1f5f9',fontWeight:700}}>
+                  <td className="c">合　計</td>
+                  <td className="c">{csvData.reduce((s,d)=>s+d.nights,0)}泊</td>
+                  <td className="r tv">{fy(totalTax)}</td>
+                  <td className="r">{fy(totalTax*.4)}</td>
+                  <td className="r">{fy(totalTax*.6)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="btns">
+            <button className="btn btn-g" onClick={()=>doExport(sorted)}>📥 申告用Excelダウンロード</button>
+          </div>
+          <div className="note">
+            ⚠️ <strong>計算方法：</strong>(売上−清掃料)÷泊数÷人数で1人1泊料金を算出し、1,000円未満切捨て後に2%を掛けています（上限¥2,000/人/泊）。<br/>
+            <strong>申告期限：</strong>原則として翌月末までに沖縄県（県税）および北谷町（町税）へ申告・納付が必要です。申告前に税務担当者にご確認ください。
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
